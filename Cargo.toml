@@ -5,5 +5,6 @@ edition = "2024"
 
 [dependencies]
 axum = "0.8.9"
-sqlx = { version = "0.9", features = [ "runtime-tokio", "tls-rustls", "sqlite" ] }
+quick-xml = "0.41.0"
+sqlx = { version = "0.9", features = [ "runtime-tokio", "tls-rustls", "postgres" ] }
 tokio = { version = "1.52.4", features = ["full"] }
