@@ -1,17 +1,18 @@
+CREATE TYPE jlpt_level AS ENUM ('n5', 'n4', 'n3', 'n2', 'n1');
+
 CREATE TABLE radical (
   id smallint PRIMARY KEY,
-  literal text NOT NULL
+  literal text NOT NULL UNIQUE
 );
 
 CREATE TABLE kanji (
   id smallint PRIMARY KEY,
-  literal text NOT NULL,
+  literal text NOT NULL UNIQUE,
+  meanings text[] NOT NULL,
   kunyomi text[] NOT NULL,
-  onyomi text[] NOT NULL
+  onyomi text[] NOT NULL,
+  jlpt jlpt_level
 );
-
--- Look up a kanji by its literal; UNIQUE since each character appears once.
-CREATE UNIQUE INDEX kanji_literal_idx ON kanji (literal);
 
 CREATE TABLE kanji_radical (
   kanji_id smallint NOT NULL REFERENCES kanji (id),
