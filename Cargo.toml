@@ -1,9 +1,17 @@
-[package]
-name = "kanji-srs-server"
+[workspace]
+resolver = "3"
+members = ["crates/core", "crates/postgres", "crates/server"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
+# Internal crates
+kanji-srs-core = { path = "crates/core" }
+kanji-srs-postgres = { path = "crates/postgres" }
+
+# External crates
 anyhow = "1.0.103"
 axum = "0.8.9"
 pglite-oxide = "0.5.1"

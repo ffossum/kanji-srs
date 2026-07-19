@@ -13,8 +13,7 @@ pub struct Kanji {
     pub jlpt: Option<Jlpt>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type)]
-#[sqlx(type_name = "jlpt_level", rename_all = "lowercase")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Jlpt {
     N5,
     N4,

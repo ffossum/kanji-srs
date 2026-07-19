@@ -1778,14 +1778,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "kanji-srs-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+]
+
+[[package]]
+name = "kanji-srs-postgres"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "kanji-srs-core",
+ "pglite-oxide",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "kanji-srs-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
- "pglite-oxide",
+ "kanji-srs-core",
+ "kanji-srs-postgres",
  "quick-xml",
- "sqlx",
  "tokio",
 ]
 

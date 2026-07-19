@@ -1,0 +1,12 @@
+[package]
+name = "kanji-srs-server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+kanji-srs-core.workspace = true
+kanji-srs-postgres.workspace = true
+anyhow.workspace = true
+axum.workspace = true
+quick-xml.workspace = true
+tokio.workspace = true

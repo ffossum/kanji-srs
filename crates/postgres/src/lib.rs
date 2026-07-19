@@ -1,10 +1,6 @@
-use crate::core::kanji::{Jlpt, Kanji, Radical};
+use kanji_srs_core::kanji::{Jlpt, Kanji, Radical};
+use kanji_srs_core::repo::Repo;
 use sqlx::PgPool;
-
-pub trait Repo {
-    async fn upsert_kanji(&self, kanji: &[Kanji]) -> anyhow::Result<()>;
-    async fn get_kanji<T: AsRef<str>>(&self, literals: &[T]) -> anyhow::Result<Vec<Kanji>>;
-}
 
 /// Postgres-backed [`Repo`] implementation.
 #[derive(Clone)]
@@ -25,6 +21,42 @@ impl PgRepo {
     }
 }
 
+/// Maps the `jlpt_level` Postgres enum. Kept in this crate so the domain
+/// [`Jlpt`] type stays free of any sqlx dependency.
+#[derive(Debug, Clone, Copy, sqlx::Type)]
+#[sqlx(type_name = "jlpt_level", rename_all = "lowercase")]
+enum JlptSql {
+    N5,
+    N4,
+    N3,
+    N2,
+    N1,
+}
+
+impl From<Jlpt> for JlptSql {
+    fn from(jlpt: Jlpt) -> Self {
+        match jlpt {
+            Jlpt::N5 => Self::N5,
+            Jlpt::N4 => Self::N4,
+            Jlpt::N3 => Self::N3,
+            Jlpt::N2 => Self::N2,
+            Jlpt::N1 => Self::N1,
+        }
+    }
+}
+
+impl From<JlptSql> for Jlpt {
+    fn from(jlpt: JlptSql) -> Self {
+        match jlpt {
+            JlptSql::N5 => Self::N5,
+            JlptSql::N4 => Self::N4,
+            JlptSql::N3 => Self::N3,
+            JlptSql::N2 => Self::N2,
+            JlptSql::N1 => Self::N1,
+        }
+    }
+}
+
 /// Flat row shape returned by [`PgRepo::get_kanji`]; radicals are aggregated
 /// into an array by the query so a single round-trip yields the full aggregate.
 #[derive(sqlx::FromRow)]
@@ -33,7 +65,7 @@ struct KanjiRow {
     meanings: Vec<String>,
     onyomi: Vec<String>,
     kunyomi: Vec<String>,
-    jlpt: Option<Jlpt>,
+    jlpt: Option<JlptSql>,
     radicals: Vec<String>,
 }
 
@@ -44,7 +76,7 @@ impl From<KanjiRow> for Kanji {
             meanings: row.meanings,
             onyomi: row.onyomi,
             kunyomi: row.kunyomi,
-            jlpt: row.jlpt,
+            jlpt: row.jlpt.map(Jlpt::from),
             radicals: row
                 .radicals
                 .into_iter()
@@ -73,7 +105,7 @@ impl Repo for PgRepo {
             .bind(&k.meanings)
             .bind(&k.kunyomi)
             .bind(&k.onyomi)
-            .bind(k.jlpt)
+            .bind(k.jlpt.map(JlptSql::from))
             .fetch_one(&mut *tx)
             .await?;
 
@@ -109,7 +141,7 @@ impl Repo for PgRepo {
         Ok(())
     }
 
-    async fn get_kanji<T: AsRef<str>>(&self, literals: &[T]) -> anyhow::Result<Vec<Kanji>> {
+    async fn get_kanji<T: AsRef<str> + Sync>(&self, literals: &[T]) -> anyhow::Result<Vec<Kanji>> {
         let literals: Vec<&str> = literals.iter().map(AsRef::as_ref).collect();
 
         let rows: Vec<KanjiRow> = sqlx::query_as(
@@ -164,12 +196,8 @@ mod tests {
             literal: "明".into(),
             meanings: vec!["bright".into(), "light".into()],
             radicals: vec![
-                Radical {
-                    literal: "日".into(),
-                },
-                Radical {
-                    literal: "月".into(),
-                },
+                Radical { literal: "日".into() },
+                Radical { literal: "月".into() },
             ],
             onyomi: vec!["メイ".into(), "ミョウ".into()],
             kunyomi: vec!["あか".into()],
@@ -182,9 +210,7 @@ mod tests {
         let (_server, repo) = setup().await;
         let kanji = sample();
 
-        repo.upsert_kanji(std::slice::from_ref(&kanji))
-            .await
-            .unwrap();
+        repo.upsert_kanji(std::slice::from_ref(&kanji)).await.unwrap();
         let got = repo.get_kanji(&["明"]).await.unwrap();
 
         assert_eq!(got, vec![kanji]);
@@ -197,12 +223,8 @@ mod tests {
 
         let mut updated = sample();
         updated.meanings = vec!["clear".into()];
-        updated.radicals = vec![Radical {
-            literal: "日".into(),
-        }];
-        repo.upsert_kanji(std::slice::from_ref(&updated))
-            .await
-            .unwrap();
+        updated.radicals = vec![Radical { literal: "日".into() }];
+        repo.upsert_kanji(std::slice::from_ref(&updated)).await.unwrap();
 
         let got = repo.get_kanji(&["明"]).await.unwrap();
         assert_eq!(got, vec![updated]);

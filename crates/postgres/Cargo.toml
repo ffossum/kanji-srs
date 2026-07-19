@@ -1,0 +1,13 @@
+[package]
+name = "kanji-srs-postgres"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+kanji-srs-core.workspace = true
+anyhow.workspace = true
+sqlx.workspace = true
+
+[dev-dependencies]
+pglite-oxide.workspace = true
+tokio.workspace = true
