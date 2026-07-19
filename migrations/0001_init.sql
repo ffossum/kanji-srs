@@ -1,12 +1,12 @@
 CREATE TYPE jlpt_level AS ENUM ('n5', 'n4', 'n3', 'n2', 'n1');
 
 CREATE TABLE radical (
-  id smallint PRIMARY KEY,
+  id smallint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   literal text NOT NULL UNIQUE
 );
 
 CREATE TABLE kanji (
-  id smallint PRIMARY KEY,
+  id smallint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   literal text NOT NULL UNIQUE,
   meanings text[] NOT NULL,
   kunyomi text[] NOT NULL,

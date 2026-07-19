@@ -1,17 +1,21 @@
-struct Radical {
-    literal: String,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Radical {
+    pub literal: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Kanji {
-    literal: String,
-    meanings: Vec<String>,
-    radicals: Vec<Radical>,
-    onyomi: Vec<String>,
-    kunyomi: Vec<String>,
-    jlpt: Option<JLPT>,
+    pub literal: String,
+    pub meanings: Vec<String>,
+    pub radicals: Vec<Radical>,
+    pub onyomi: Vec<String>,
+    pub kunyomi: Vec<String>,
+    pub jlpt: Option<Jlpt>,
 }
 
-enum JLPT {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type)]
+#[sqlx(type_name = "jlpt_level", rename_all = "lowercase")]
+pub enum Jlpt {
     N5,
     N4,
     N3,

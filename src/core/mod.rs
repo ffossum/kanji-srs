@@ -1,2 +1,2 @@
-mod kanji;
-mod repo;
+pub mod kanji;
+pub mod repo;
